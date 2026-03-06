@@ -6,9 +6,13 @@ includes:
   scripts:
     taskfile: ./.scripts
     dir: ./.scripts
+  backend:
+    taskfile: ./backend
+    dir: ./backend
 
 vars:
   NENV: "node_modules"
+  SERVICES: "backend"
 
 tasks:
   _prettier:
@@ -35,6 +39,9 @@ tasks:
       - echo 'Installing .scripts dependencies...'
       - task: scripts:init
 
+      - for: { var: SERVICES, as: SERVICE }
+        task: "{{.SERVICE}}:init"
+
   lint:
     desc: Lint project
     cmds:
@@ -44,6 +51,9 @@ tasks:
 
       - echo 'Running scripts checks...'
       - task: scripts:lint
+
+      - for: { var: SERVICES, as: SERVICE }
+        task: "{{.SERVICE}}:lint"
 
       - echo 'Running GHA checks...'
       - GH_TOKEN="$(gh auth token)" zizmor .
@@ -58,6 +68,9 @@ tasks:
       - echo 'Running scripts fixes...'
       - task: scripts:lint-fix
 
+      - for: { var: SERVICES, as: SERVICE }
+        task: "{{.SERVICE}}:lint-fix"
+
       - echo 'Running GHA checks...'
       - GH_TOKEN="$(gh auth token)" zizmor .
 
@@ -65,6 +78,9 @@ tasks:
     desc: Test project
     cmds:
       - echo 'Running tests...'
+
+      - for: { var: SERVICES, as: SERVICE }
+        task: "{{.SERVICE}}:test"
 
   clean:
     desc: Clean project environment
@@ -75,6 +91,9 @@ tasks:
       - echo 'Cleaning .scripts dependencies...'
       - task: scripts:clean
 
+      - for: { var: SERVICES, as: SERVICE }
+        task: "{{.SERVICE}}:clean"
+
   dependencies-update:
     desc: Update dependencies
     cmds:
@@ -84,6 +103,9 @@ tasks:
 
       - echo 'Updating .scripts dependencies...'
       - task: scripts:dependencies-update
+
+      - for: { var: SERVICES, as: SERVICE }
+        task: "{{.SERVICE}}:dependencies-update"
 
   dependencies-check:
     desc: Check dependencies
@@ -96,6 +118,9 @@ tasks:
 
       - echo 'Checking .scripts dependencies...'
       - task: scripts:dependencies-check
+
+      - for: { var: SERVICES, as: SERVICE }
+        task: "{{.SERVICE}}:dependencies-check"
 
   update-from-template:
     desc: Update project from template
@@ -113,7 +138,7 @@ tasks:
         owner_name='Dmitry Ovsiannikov'
         owner_github_login='ovsds'
         scripts='true'
-        services=''
+        services='backend'
         with_python='true'
         with_cookiecutter='false'
         with_trivy='true'
